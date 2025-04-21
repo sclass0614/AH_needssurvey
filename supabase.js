@@ -2,21 +2,23 @@
 const SUPABASE_URL = "https://dfomeijvzayyszisqflo.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmb21laWp2emF5eXN6aXNxZmxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4NjYwNDIsImV4cCI6MjA2MDQ0MjA0Mn0.-r1iL04wvPNdBeIvgxqXLF2rWqIUX5Ot-qGQRdYo_qk";
 
-// Supabase 클라이언트 초기화
-async function initSupabase() {
-    // Supabase 라이브러리가 로드되었는지 확인
-    if (typeof supabase === 'undefined') {
-        console.error('Supabase 라이브러리가 로드되지 않았습니다.');
-        return null;
+// 전역 Supabase 클라이언트 변수
+let supabaseClient = null;
+
+// Supabase 클라이언트 초기화 함수
+function initSupabase() {
+    if (!supabaseClient) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     }
-    
-    return supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    return supabaseClient;
 }
+
+window.supabase = initSupabase();
 
 // 회원 정보 가져오기
 async function getMemberData() {
     try {
-        const supabase = await initSupabase();
+        const supabase = initSupabase();
         if (!supabase) return [];
         
         const { data, error } = await supabase
@@ -39,7 +41,7 @@ async function getMemberData() {
 // 직원 정보 가져오기
 async function getEmployeeData() {
     try {
-        const supabase = await initSupabase();
+        const supabase = initSupabase();
         if (!supabase) return [];
         
         const { data, error } = await supabase
@@ -62,7 +64,7 @@ async function getEmployeeData() {
 // 설문조사 항목 가져오기 (전체 설문)
 async function getData() {
     try {
-        const supabase = await initSupabase();
+        const supabase = initSupabase();
         if (!supabase) return [];
         
         const { data, error } = await supabase
@@ -94,7 +96,7 @@ async function getData() {
 // 필수 설문조사 항목만 가져오기
 async function getSelectedData() {
     try {
-        const supabase = await initSupabase();
+        const supabase = initSupabase();
         if (!supabase) return [];
         
         const { data, error } = await supabase
@@ -127,7 +129,7 @@ async function getSelectedData() {
 // 회원의 설문조사 결과 가져오기
 async function getMemberSurveys(memberNo) {
     try {
-        const supabase = await initSupabase();
+        const supabase = initSupabase();
         if (!supabase) return { success: false, message: 'Supabase 연결 실패', surveys: [] };
         
         // 해당 회원의 모든 설문조사 ID를 먼저 가져옴 (중복 제거)
@@ -198,7 +200,7 @@ async function getMemberSurveys(memberNo) {
 // 설문조사 결과 저장 (새로운 방식)
 async function saveResearchData(surveyData) {
     try {
-        const supabase = await initSupabase();
+        const supabase = initSupabase();
         if (!supabase) return { success: false, message: 'Supabase 연결 실패' };
         
         // 설문 항목 데이터 가져오기 (대분류, 중분류, 소분류 매핑을 위해)
@@ -266,7 +268,7 @@ async function saveResearchData(surveyData) {
 // 설문조사 결과 수정 (새로운 방식)
 async function updateResearchData(updateData) {
     try {
-        const supabase = await initSupabase();
+        const supabase = initSupabase();
         if (!supabase) return { success: false, message: 'Supabase 연결 실패' };
         
         // 먼저 기존 레코드 삭제
