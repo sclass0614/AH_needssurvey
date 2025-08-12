@@ -6,11 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>우리집데이케어센터 욕구조사</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Supabase 라이브러리 추가 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <!-- 자체 개발한 Supabase 연동 스크립트 -->
     <script src="supabase.js"></script>
-    <!-- 자체 개발한 인증 체크 스크립트 -->
     <script type="module" src="https://sclass0614.github.io/authCheck/authCheck.js"></script>
 </head>
 
@@ -20,7 +17,6 @@
     </div>
     <div class="header-spacer"></div>
     <div class="survey-container" id="surveyContent">
-        <!-- 회원 및 직원 정보 섹션 -->
         <div class="info-section" id="infoSection">
             <div class="info-row" id="memberInfoRow">
                 <div class="info-group" id="memberNumberGroup">
@@ -44,20 +40,16 @@
             </div>
         </div>
 
-        <!-- 설문 내용 컨테이너 -->
         <div class="survey-container" id="surveyContentContainer">
-            <!-- 설문 내용이 여기에 동적으로 추가됩니다 -->
         </div>
     </div>
     <div class="page-number" id="pageNumber"></div>
 
-    <!-- 로딩 오버레이 -->
     <div id="loadingOverlay">
         <div class="loader"></div>
         <div>데이터를 처리중입니다...</div>
     </div>
 
-    <!-- 모달 컴포넌트 -->
     <div class="modal-overlay" id="customModal">
         <div class="modal-container">
             <div class="modal-header">
@@ -65,7 +57,6 @@
                 <div class="modal-close">&times;</div>
             </div>
             <div class="modal-body" id="modalMessage">
-                <!-- 메시지 내용이 여기에 들어갑니다 -->
             </div>
             <div class="modal-footer">
                 <button class="modal-btn" id="modalConfirmBtn">확인</button>
@@ -73,9 +64,6 @@
         </div>
     </div>
 
-
-
-    <!-- 회원 선택 모달 -->
     <div id="memberSelectModal" class="modal-overlay" style="display: none;">
         <div class="modal-container">
             <div class="modal-header">
@@ -88,7 +76,6 @@
                         onkeyup="searchMembers()">
                 </div>
                 <div class="modal-list" id="memberList">
-                    <!-- 회원 목록이 여기에 동적으로 추가됩니다 -->
                     <div class="no-items">회원 정보를 불러오는 중...</div>
                 </div>
             </div>
@@ -99,7 +86,6 @@
         </div>
     </div>
 
-    <!-- 직원 선택 모달 -->
     <div id="employeeSelectModal" class="modal-overlay" style="display: none;">
         <div class="modal-container">
             <div class="modal-header">
@@ -112,7 +98,6 @@
                         onkeyup="searchEmployees()">
                 </div>
                 <div class="modal-list" id="employeeList">
-                    <!-- 직원 목록이 여기에 동적으로 추가됩니다 -->
                     <div class="no-items">직원 정보를 불러오는 중...</div>
                 </div>
             </div>
@@ -156,9 +141,7 @@
 
     <script>
 
-        // 모달 관련 함수
         function showAlert(message, callback) {
-            // 알림창 오버레이가 없으면 생성
             let alertOverlay = document.getElementById('alertOverlay');
             if (!alertOverlay) {
                 alertOverlay = document.createElement('div');
@@ -179,10 +162,8 @@
                 document.body.appendChild(alertOverlay);
             }
 
-            // 메시지 설정 (목록 형식으로 변환)
             const alertMessage = document.getElementById('alertMessage');
 
-            // 필수 항목 목록 처리
             if (message.includes('다음 필수 항목이 입력되지 않았습니다:')) {
                 const parts = message.split('다음 필수 항목이 입력되지 않았습니다:\n\n');
                 const title = parts[0] + '다음 필수 항목이 입력되지 않았습니다:';
@@ -199,11 +180,9 @@
 
                 alertMessage.innerHTML = `${title}<div class="alert-items">${items}</div>`;
             } else {
-                // 일반 메시지
                 alertMessage.textContent = message;
             }
 
-            // 버튼 이벤트 설정
             const alertOkBtn = document.getElementById('alertOkBtn');
             alertOkBtn.onclick = function () {
                 alertOverlay.style.display = 'none';
@@ -212,20 +191,14 @@
                 }
             };
 
-            // 알림창 표시
             alertOverlay.style.display = 'flex';
         }
 
-        // 애플리케이션 초기화
         initialize();
 
-        // 전역 변수로 회원 설문조사 데이터 저장
         let tempMemberInfo = [];
-        // 전역 변수로 직원 정보 저장
         let tempEmployeeInfo = [];
 
-
-        // 로딩 오버레이 표시/숨김 함수
         function showLoading() {
             document.getElementById('loadingOverlay').style.display = 'flex';
         }
@@ -234,41 +207,29 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        // 설문 데이터는 이제 initialize 함수와 페이지 전환 함수에서 직접 로드합니다.
-
-        // 헤더 제목 업데이트 함수
         function updateHeaderTitle(selectedSurveyDate = null) {
             const headerTitle = document.querySelector('.header h1');
             const baseTitle = document.getElementById('fullSurveyBtn').classList.contains('active') ? 
                 "우리집데이케어센터 욕구조사_전체조사" : "우리집데이케어센터 욕구조사_필수조사";
 
             if (selectedSurveyDate) {
-                // 날짜 시간 정보를 작은 글씨로 표시하기 위해 span 요소 사용
                 headerTitle.innerHTML = `${baseTitle} <span style="font-size: 0.8em; font-weight: normal;">(${selectedSurveyDate})</span>`;
             } else {
                 headerTitle.textContent = baseTitle;
             }
         }
 
-        // 설문 렌더링 함수
         function renderSurvey(data) {
-            // 헤더를 추출하고 데이터 구조 파악
             const headers = data[0];
             const rows = data.slice(1);
 
-            // 설문 내용을 담을 컨테이너 요소 찾기
             const surveyContent = document.getElementById('surveyContentContainer');
             if (!surveyContent) {
-                console.error('설문 내용을 표시할 컨테이너(#surveyContentContainer)를 찾을 수 없습니다.');
                 return;
             }
 
-            // 설문 내용을 담을 변수 초기화
             let surveyHtml = '';
 
-            // 페이지 헤더 및 설문 제목, 설문조사 타입 선택 버튼 제거
-
-            // 데이터를 대분류별로 그룹화
             const groupedData = {};
             for (let i = 1; i < data.length; i++) {
                 const [mainCategory, subCategory, question, required, inputType, content] = data[i];
@@ -287,8 +248,7 @@
                 });
             }
 
-            // 그룹화된 데이터를 HTML로 변환
-            let finalHtml = ''; // surveyHtml이 비어있으므로 직접 빈 문자열로 초기화
+            let finalHtml = '';
 
             for (const mainCategory in groupedData) {
                 let sectionHtml = `<div class="section"><h2>${mainCategory}</h2>`;
@@ -329,11 +289,9 @@
 
             surveyContent.innerHTML = finalHtml;
 
-            // 페이지 로드 시 수정 버튼 비활성화
             document.getElementById('editBtn').disabled = true;
         }
 
-        // 체크박스 항목 생성 함수
         function entry_체크박스(content) {
             const items = content.split('_');
             let html = '<div class="checkbox-group">';
@@ -368,9 +326,7 @@
             return html;
         }
 
-        // 입력 필드 활성화/비활성화 함수
         function toggleInput(checkbox) {
-            // 수정: 입력 필드 찾는 방식 개선
             let inputField = null;
             const parentItem = checkbox.closest('.checkbox-item');
             if (parentItem) {
@@ -380,22 +336,19 @@
             if (inputField) {
                 inputField.disabled = !checkbox.checked;
                 if (!checkbox.checked) {
-                    inputField.value = ''; // 체크 해제시 입력값 초기화
+                    inputField.value = '';
                 }
             }
         }
 
-        // 텍스트 영역 생성 함수
         function entry_textarea() {
             return `<textarea class="textarea-field" placeholder="답변을 입력해주세요"></textarea>`;
         }
 
-        // 라디오 버튼 생성 함수
         function entry_radio(content) {
             const randomName = Math.random().toString(36).substr(2, 9);
             let html = '<div class="radio-group">';
 
-            // content가 문자열인 경우에만 split 실행
             const items = typeof content === 'string' ? content.split('_') : content;
 
             items.forEach(item => {
@@ -426,66 +379,54 @@
 
             html += '</div>';
             
-            // 상단에 초기화 버튼 추가
             return `<div class="radio-container">
                 <button type="button" class="reset-radio-btn no-print" onclick="resetRadioGroup(this)" title="선택 초기화">✕</button>
                 ${html}
             </div>`;
         }
 
-        // 라디오 버튼 초기화 함수 추가
         function resetRadioGroup(button) {
             const container = button.closest('.radio-container');
             const radioGroup = container.querySelector('.radio-group');
             
-            // 모든 라디오 버튼 선택 해제
             radioGroup.querySelectorAll('input[type="radio"]').forEach(radio => {
                 radio.checked = false;
             });
             
-            // 모든 입력 필드 비활성화 및 초기화
             radioGroup.querySelectorAll('input[type="text"], .short-input').forEach(input => {
                 input.disabled = true;
                 input.value = '';
             });
         }
 
-        // 라디오 버튼 입력 필드 활성화/비활성화 함수
         function toggleRadioInput(radio) {
             const parentItem = radio.closest('.radio-item');
             const inputField = parentItem.querySelector('input[type="text"], .short-input');
 
             if (inputField) {
-                // 같은 그룹의 다른 라디오 버튼들의 입력 필드를 비활성화
                 const radioGroup = radio.closest('.radio-group');
                 radioGroup.querySelectorAll('input[type="text"], .short-input').forEach(input => {
                     input.disabled = true;
                     input.value = '';
                 });
 
-                // 선택된 라디오 버튼의 입력 필드만 활성화
                 inputField.disabled = !radio.checked;
             }
         }
 
-        // 입력 필드 생성 함수
         function entry_input() {
             return `<input type="text" class="input-field" placeholder="답변을 입력해주세요">`;
         }
 
-        // 인쇄 버튼 기능
         function printSurvey() {
-            // 인쇄를 위한 스타일 추가
             const style = document.createElement('style');
             style.id = 'print-styles';
             style.innerHTML = `
                 @media print {
-                    /* 페이지 전체 설정 */
                     body {
                         background-color: white;
                     }
                     
-                    /* 헤더 표시 설정 */
                     .header {
                         display: block !important;
                         position: static;
@@ -494,17 +435,14 @@
                         border-bottom: 2px solid #4CAF50;
                     }
                     
-                    /* 컨트롤 패널 및 페이지 번호 숨김 */
                     .control-panel, .page-number {
                         display: none !important;
                     }
                     
-                    /* 초기화 버튼 등 인쇄 제외 요소 숨김 */
                     .no-print, .no-print * {
                         display: none !important;
                     }
                     
-                    /* 섹션 연속 출력 설정 */
                     .section {
                         page-break-before: auto !important;
                         page-break-after: auto !important;
@@ -513,7 +451,6 @@
                         -webkit-print-color-adjust: exact;
                     }
                     
-                    /* 정보 섹션 설정 */
                     .info-section {
                         page-break-after: auto !important;
                         background-color: #C8E6C9 !important;
@@ -521,30 +458,26 @@
                         -webkit-print-color-adjust: exact;
                     }
                     
-                    /* 서브섹션 설정 */
                     .subsection {
                         background-color: #F1F8E9 !important;
                         print-color-adjust: exact;
                         -webkit-print-color-adjust: exact;
                     }
                     
-                    /* 컨테이너 설정 */
                     .survey-container {
                         box-shadow: none;
                         padding: 0;
                         margin: 0;
                     }
                     
-                    /* 내용이 자연스럽게 흐르도록 페이지 나누기 제거 */
                     .section, .subsection, .question {
                         break-inside: auto !important;
                         page-break-before: auto !important;
                         page-break-after: auto !important;
                     }
                     
-                    /* 인쇄 시 여백 설정 */
                     @page {
-                        margin: 1.5cm 1cm; /* 상하 1.5cm, 좌우 1cm 여백 설정 */
+                        margin: 1.5cm 1cm;
                     }
                 }
             `;
@@ -552,52 +485,43 @@
 
             window.print();
 
-            // 인쇄 후 스타일 제거
             setTimeout(() => {
                 document.getElementById('print-styles')?.remove();
             }, 1000);
         }
 
-        // 설문조사 결과 제출 함수
         async function submit_ResearchAll() {
-            // 회원정보 및 직원정보 수집
             const memberNo = document.querySelector('.info-section .info-row:first-child .info-group:first-child input').value;
             const memberName = document.querySelector('.info-section .info-row:first-child .info-group:last-child input').value;
             const staffNo = document.querySelector('.info-section .info-row:last-child .info-group:first-child input').value;
             const staffName = document.querySelector('.info-section .info-row:last-child .info-group:last-child input').value;
 
-            // 필수 정보 확인
             if (!memberNo || !memberName) {
                 showAlert('회원번호와 회원명은 필수 입력사항입니다.', function () {
                     return;
                 });
-                return; // 함수 실행 중단
+                return;
             }
 
-            // 직원 정보 필수 확인
             if (!staffNo || !staffName) {
                 showAlert('직원번호와 직원명은 필수 입력사항입니다.', function () {
                     return;
                 });
-                return; // 함수 실행 중단
+                return;
             }
 
-            // 필수 항목 체크
             const missingItems = entryCheck();
             if (missingItems && missingItems.length > 0) {
-                return; // entryCheck 함수에서 이미 경고 메시지를 표시
+                return;
             }
 
-            // 설문조사 데이터 수집
             const formData = collectFormData();
 
-            // 수집된 데이터가 비어있는지 확인
             if (!formData || Object.keys(formData).length === 0) {
                 showAlert('수집된 설문 데이터가 없습니다. 필수 항목을 모두 입력해주세요.');
                 return;
             }
 
-            // ID 생성 (회원번호_yymmddhhnnss 형식)
             const now = new Date();
             const year = now.getFullYear().toString().substr(-2);
             const month = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -607,7 +531,6 @@
             const seconds = now.getSeconds().toString().padStart(2, '0');
             const surveyId = `${memberNo}_${year}${month}${day}${hours}${minutes}${seconds}`;
 
-            // 제출할 데이터 구성
             const submitData = {
                 surveyId: surveyId,
                 memberNo: memberNo,
@@ -617,14 +540,12 @@
                 formData: formData
             };
 
-            // 데이터 전송
             showLoading();
             try {
-                const response = await saveResearchData(submitData); // supabase.js의 함수 호출
+                const response = await saveResearchData(submitData);
                 hideLoading();
                 if (response && response.success) {
                     showAlert('설문조사 결과가 성공적으로 저장되었습니다.', function () {
-                        // 저장 성공 후 초기화
                         allClear();
                     });
                 } else {
@@ -636,19 +557,17 @@
             }
         }
 
-        // 설문조사 데이터 불러오기
         async function loadMemberSurveys(memberNo) {
             if (!memberNo) {
                 showAlert('회원번호를 입력해주세요.');
                 return;
             }
 
-            // 데이터 로드 전에 폼 초기화
             allClear();
 
             showLoading();
             try {
-                const response = await getMemberSurveys(memberNo); // supabase.js의 함수 호출
+                const response = await getMemberSurveys(memberNo);
                 hideLoading();
                 if (!response.success) {
                     showAlert('데이터 로드 실패: ' + response.message, function () {
@@ -666,12 +585,9 @@
                     return;
                 }
 
-                // 전역 변수에 회원 설문조사 데이터 저장
                 tempMemberInfo = response.surveys;
 
-                // 콤보박스 업데이트
                 const surveyIds = tempMemberInfo.map(survey => {
-                    // ID 형식 변환: memberNo_YYMMDDhhmmss -> YYYY-MM-DD hh:mm:ss
                     const id = survey.surveyId;
                     let displayId = id;
 
@@ -697,13 +613,11 @@
 
                 updateSurveyIdSelect(surveyIds);
 
-                // 회원 정보 자동 입력
                 if (tempMemberInfo.length > 0) {
-                    const latestSurvey = tempMemberInfo[0]; // 최신 데이터가 첫 번째에 오도록 정렬되어 있음
+                    const latestSurvey = tempMemberInfo[0];
                     document.querySelector('.info-section .info-row:first-child .info-group:first-child input').value = latestSurvey.memberNo;
                     document.querySelector('.info-section .info-row:first-child .info-group:last-child input').value = latestSurvey.memberName;
 
-                    // 회원정보만 불러온 상태에서는 입력 버튼 활성화, 수정 버튼 비활성화
                     document.getElementById('submitBtn').disabled = false;
                     document.getElementById('editBtn').disabled = true;
                 }
@@ -715,16 +629,13 @@
             }
         }
 
-        // 설문조사 ID 선택 콤보박스 업데이트
         function updateSurveyIdSelect(surveyIds) {
             const select = document.getElementById('surveyIdSelect');
 
-            // 기존 옵션 제거
             while (select.options.length > 1) {
                 select.remove(1);
             }
 
-            // 새 옵션 추가
             surveyIds.forEach(survey => {
                 const option = document.createElement('option');
                 option.value = survey.id;
@@ -733,11 +644,9 @@
             });
         }
 
-        // 선택한 설문조사 데이터 불러오기
         function selectSurvey(surveyId) {
             if (!surveyId || !tempMemberInfo) return;
 
-            // 선택한 ID에 해당하는 설문조사 데이터 찾기
             const selectedSurvey = tempMemberInfo.find(survey => survey.surveyId === surveyId);
 
             if (!selectedSurvey) {
@@ -746,101 +655,73 @@
                 });
             }
 
-            // 선택된 설문조사의 날짜 표시 가져오기
             const selectElement = document.getElementById('surveyIdSelect');
             const selectedOption = selectElement.options[selectElement.selectedIndex];
             const surveyDate = selectedOption.textContent;
 
-            // 헤더 제목 업데이트
             updateHeaderTitle(surveyDate);
 
-            // 컨트롤 패널의 회원번호 저장
             const controlPanelMemberNo = document.getElementById('entrymembernumberSearch').value;
 
-            // 데이터를 불러오기 전에 폼 초기화
             allClear();
 
-            // 컨트롤 패널의 회원번호 복원
             document.getElementById('entrymembernumberSearch').value = controlPanelMemberNo;
 
-            // 회원 정보 및 직원 정보 채우기
             document.getElementById('entrymembernumber').value = selectedSurvey.memberNo;
             document.getElementById('entrymembername').value = selectedSurvey.memberName;
             document.getElementById('entryemployeenumber').value = selectedSurvey.staffNo;
             document.getElementById('entryemployeename').value = selectedSurvey.staffName;
 
-            // 폼 데이터 채우기
             fillFormData(selectedSurvey.formData);
 
-            // 입력 버튼 비활성화, 수정 버튼 활성화
             document.getElementById('submitBtn').disabled = true;
             document.getElementById('editBtn').disabled = false;
 
             showAlert('선택한 설문조사 데이터를 불러왔습니다.');
         }
 
-        // 불러온 데이터로 폼 채우기
         function fillFormData(formData) {
-            console.log('받은 폼 데이터:', formData);
-
-            // 모든 질문 요소 수집
             const questions = document.querySelectorAll('.question');
 
             questions.forEach(question => {
-                // 질문 제목(소분류) 가져오기
                 const titleElement = question.querySelector('h4');
                 if (!titleElement) return;
 
-                // 필수 표시 제거
                 const title = titleElement.textContent.replace('*필수', '').trim();
 
-                // 해당 질문에 대한 답변이 있는지 확인
                 if (formData[title]) {
-                    console.log('답변 처리:', title, formData[title]);
                     const value = formData[title];
 
-                    // 체크박스 처리
                     const checkboxes = question.querySelectorAll('input[type="checkbox"]');
                     if (checkboxes.length > 0) {
-                        // 값이 여러 개인 경우
                         const values = value.includes('_') ? value.split('_') : [value];
 
                         values.forEach(val => {
-                            console.log('체크박스 값 처리:', val);
                             let checkboxValue = val;
                             let inputValue = '';
 
-                            // 입력값이 있는지 확인 ([...] 형식)
                             if (val.includes('[') && val.includes(']')) {
                                 const matches = val.match(/(.*)\[(.*)\]/);
                                 if (matches && matches.length > 2) {
                                     checkboxValue = matches[1].trim();
                                     inputValue = matches[2];
-                                    console.log('입력값 추출:', checkboxValue, inputValue);
                                 }
                             }
 
-                            // 모든 체크박스 확인
                             for (let i = 0; i < checkboxes.length; i++) {
                                 const checkbox = checkboxes[i];
                                 const label = checkbox.nextElementSibling.textContent.trim();
 
-                                // 정확한 레이블 비교
                                 if (label === checkboxValue) {
-                                    console.log('체크박스 매칭:', label);
-                                    // 체크박스 체크
                                     checkbox.checked = true;
 
-                                    // 체크박스 이벤트 트리거하여 연결된 입력 필드 활성화
                                     toggleInput(checkbox);
 
-                                    // 연결된 입력필드가 있는지 확인
                                     if (inputValue) {
                                         const parentItem = checkbox.closest('.checkbox-item');
                                         if (parentItem) {
                                             const inputField = parentItem.querySelector('input[type="text"]');
                                             if (inputField) {
-                                                console.log('입력필드 설정:', inputField);
                                                 inputField.disabled = false;
                                                 inputField.value = inputValue;
                                             }
@@ -851,12 +732,10 @@
                             }
                         });
                     }
-                    // 라디오 버튼 처리
                     else if (question.querySelector('.radio-container') || question.querySelectorAll('input[type="radio"]').length > 0) {
                         let radioValue = value;
                         let inputValue = '';
 
-                        // 입력값이 있는지 확인 ([...] 형식)
                         if (value.includes('[') && value.includes(']')) {
                             const matches = value.match(/(.*)\[(.*)\]/);
                             if (matches && matches.length > 2) {
@@ -865,7 +744,6 @@
                             }
                         }
 
-                        // 먼저 라디오 그룹 내 모든 입력 필드 비활성화 및 초기화
                         const radioContainer = question.querySelector('.radio-container');
                         if (radioContainer) {
                             radioContainer.querySelectorAll('input[type="text"], .short-input').forEach(input => {
@@ -873,7 +751,6 @@
                                 input.value = '';
                             });
                         } else {
-                            // 이전 구조에서도 모든 입력 필드 초기화
                             question.querySelectorAll('input[type="text"], .short-input').forEach(input => {
                                 if (input.closest('.radio-item')) {
                                     input.disabled = true;
@@ -882,28 +759,22 @@
                             });
                         }
                         
-                        // 새 구조에서 라디오 버튼 찾기
                         let radioButtons;
                         if (radioContainer) {
                             radioButtons = radioContainer.querySelectorAll('input[type="radio"]');
                         } else {
-                            // 이전 구조에서 라디오 버튼 찾기
                             radioButtons = question.querySelectorAll('input[type="radio"]');
                         }
 
-                        // 모든 라디오 버튼 선택 해제
                         radioButtons.forEach(radio => {
                             radio.checked = false;
                         });
 
-                        // 정확히 일치하는 라디오 버튼만 선택
                         radioButtons.forEach(radio => {
                             const label = radio.nextElementSibling.textContent.trim();
                             if (label === radioValue) {
-                                // 라디오 버튼 선택
                                 radio.checked = true;
 
-                                // 입력 필드 활성화 및 값 설정
                                 const parentItem = radio.closest('.radio-item');
                                 if (parentItem && inputValue) {
                                     const inputField = parentItem.querySelector('input[type="text"], .short-input');
@@ -915,12 +786,10 @@
                             }
                         });
                     }
-                    // textarea 처리
                     else if (question.querySelector('textarea')) {
                         const textarea = question.querySelector('textarea');
                         textarea.value = value;
                     }
-                    // 일반 입력필드 처리
                     else if (question.querySelector('input.input-field:not([disabled])')) {
                         const inputField = question.querySelector('input.input-field:not([disabled])');
                         inputField.value = value;
@@ -929,37 +798,31 @@
             });
         }
 
-        // 컨트롤 패널 토글 기능
         function togglePanel() {
             const panel = document.getElementById('controlPanel');
             panel.classList.toggle('collapsed');
         }
 
-        // 설문조사 결과 수정 함수
         async function updateResearch() {
-            // 회원정보 및 직원정보 수집
             const memberNo = document.querySelector('.info-section .info-row:first-child .info-group:first-child input').value;
             const memberName = document.querySelector('.info-section .info-row:first-child .info-group:last-child input').value;
             const staffNo = document.querySelector('.info-section .info-row:last-child .info-group:first-child input').value;
             const staffName = document.querySelector('.info-section .info-row:last-child .info-group:last-child input').value;
 
-            // 필수 정보 확인
             if (!memberNo || !memberName) {
                 showAlert('회원번호와 회원명은 필수 입력사항입니다.', function () {
                     return;
                 });
-                return; // 함수 실행 중단
+                return;
             }
 
-            // 직원 정보 필수 확인
             if (!staffNo || !staffName) {
-                showAlert('직원번호와 직원명은 필수 입력사항입니다.', function () {
+                showAlert('직원번호와 직원명도 필수 입력사항입니다.', function () {
                     return;
                 });
-                return; // 함수 실행 중단
+                return;
             }
 
-            // 현재 선택된 설문조사 ID 확인
             const surveyIdSelect = document.getElementById('surveyIdSelect');
             const oldSurveyId = surveyIdSelect.value;
 
@@ -970,16 +833,13 @@
                 return;
             }
 
-            // 필수 항목 체크
             const missingItems = entryCheck();
             if (missingItems.length > 0) {
-                return; // entryCheck 함수에서 이미 경고 메시지를 표시
+                return;
             }
 
-            // 설문조사 데이터 수집
             const formData = collectFormData();
 
-            // 새 ID 생성 (회원번호_yymmddhhnnss 형식)
             const now = new Date();
             const year = now.getFullYear().toString().substr(-2);
             const month = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -989,7 +849,6 @@
             const seconds = now.getSeconds().toString().padStart(2, '0');
             const newSurveyId = `${memberNo}_${year}${month}${day}${hours}${minutes}${seconds}`;
 
-            // 제출할 데이터 구성
             const updateData = {
                 oldSurveyId: oldSurveyId,
                 newSurveyId: newSurveyId,
@@ -1000,17 +859,14 @@
                 formData: formData
             };
 
-            // 확인 메시지
             showAlert('기존 설문조사 데이터를 수정하시겠습니까?', function () {
-                // 데이터 전송
                 showLoading();
                 (async function() {
                     try {
-                        const response = await updateResearchData(updateData); // supabase.js의 함수 호출
+                        const response = await updateResearchData(updateData);
                         hideLoading();
                         if (response && response.success) {
                             showAlert('설문조사 결과가 성공적으로 수정되었습니다.', function () {
-                                // 성공 후 데이터 다시 불러오기 및 초기화
                                 allClear();
                                 loadMemberSurveys(memberNo);
                             });
@@ -1025,36 +881,27 @@
             });
         }
 
-        // 초기화 버튼 처리 함수 - 회원번호 포함 모두 초기화
         function clearAll() {
-            // 토글 상자의 회원번호도 초기화
             document.querySelector('.control-panel-body .control-panel-row input[placeholder="회원번호 입력"]').value = '';
 
-            // 콤보박스의 옵션을 기본값만 남기고 모두 제거
             const surveyIdSelect = document.getElementById('surveyIdSelect');
             if (surveyIdSelect) {
                 surveyIdSelect.innerHTML = '<option value="">선택하세요</option>';
                 surveyIdSelect.value = '';
             }
 
-            // 헤더 제목 원래대로 복원
             updateHeaderTitle();
 
-            // tempMemberInfo 변수 초기화 (콤보박스 옵션의 원천 데이터)
             tempMemberInfo = null;
 
-            // 기존 allClear 함수 호출
             allClear();
         }
 
-        // 모든 설문 데이터 초기화 함수
         function allClear() {
-            // 회원정보 및 직원정보 초기화 (설문지 내의 정보만)
             document.querySelectorAll('.info-section input').forEach(input => {
                 input.value = '';
             });
 
-            // 모든 체크박스, 라디오 버튼 초기화
             document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
@@ -1063,47 +910,35 @@
                 radio.checked = false;
             });
 
-            // 체크박스와 연동된 입력 필드 초기화 및 비활성화
             document.querySelectorAll('.checkbox-item input[type="text"]').forEach(input => {
                 input.value = '';
-                input.disabled = true; // 체크박스와 연결된 입력필드만 비활성화
+                input.disabled = true;
             });
 
-            // 일반 입력 필드 초기화 (체크박스와 연결되지 않은 것만)
             document.querySelectorAll('.question input.input-field:not(.checkbox-item input)').forEach(input => {
                 input.value = '';
-                // 비활성화하지 않음
             });
 
-            // 모든 텍스트 영역 초기화
             document.querySelectorAll('textarea').forEach(textarea => {
                 textarea.value = '';
             });
 
-            // 컨트롤 패널의 회원번호는 유지 (초기화하지 않음)
-
-            // 버튼 활성화/비활성화 상태 관리
             document.getElementById('submitBtn').disabled = false;
             document.getElementById('editBtn').disabled = true;
         }
 
-        // 설문조사 폼 데이터 수집 함수
         function collectFormData() {
             const result = {};
 
-            // 모든 질문 요소 수집
             const questions = document.querySelectorAll('.question');
 
             questions.forEach(question => {
-                // 질문 제목(소분류) 가져오기
                 const titleElement = question.querySelector('h4');
                 if (!titleElement) return;
 
-                // 필수 표시 제거
                 const title = titleElement.textContent.replace('*필수', '').trim();
                 let isAnswered = false;
 
-                // 1. 체크박스 처리
                 const checkboxes = question.querySelectorAll('input[type="checkbox"]');
                 if (checkboxes.length > 0 && Array.from(checkboxes).some(cb => cb.checked)) {
                     const selectedItems = [];
@@ -1112,14 +947,11 @@
                         if (checkbox.checked) {
                             let valueText = checkbox.nextElementSibling.textContent.trim();
 
-                            // 체크박스의 부모 컨테이너 가져오기
                             const parentItem = checkbox.closest('.checkbox-item');
 
                             if (parentItem) {
-                                // 입력 필드 찾기
                                 const inputField = parentItem.querySelector('input[type="text"], .short-input');
 
-                                // 입력 필드에 값이 있으면 결합하기
                                 if (inputField && !inputField.disabled && inputField.value) {
                                     valueText = `${valueText}[${inputField.value}]`;
                                 }
@@ -1134,7 +966,6 @@
                     }
                 }
 
-                // 2. 라디오 버튼 처리 (체크박스가 없거나 선택되지 않은 경우에만)
                 if (!isAnswered) {
                     const radioContainer = question.querySelector('.radio-container');
                     if (radioContainer) {
@@ -1142,14 +973,11 @@
                         if (checkedRadio) {
                             let valueText = checkedRadio.nextElementSibling.textContent.trim();
 
-                            // 라디오 버튼의 부모 컨테이너 가져오기
                             const parentItem = checkedRadio.closest('.radio-item');
 
                             if (parentItem) {
-                                // 입력 필드 찾기
                                 const inputField = parentItem.querySelector('input[type="text"], .short-input');
 
-                                // 입력 필드에 값이 있으면 결합하기
                                 if (inputField && !inputField.disabled && inputField.value) {
                                     valueText = `${valueText}[${inputField.value}]`;
                                 }
@@ -1159,19 +987,15 @@
                             isAnswered = true;
                         }
                     } else {
-                        // 이전 방식 호환성 유지
                         const checkedRadio = question.querySelector('input[type="radio"]:checked');
                         if (checkedRadio) {
                             let valueText = checkedRadio.nextElementSibling.textContent.trim();
 
-                            // 라디오 버튼의 부모 컨테이너 가져오기
                             const parentItem = checkedRadio.closest('.radio-item');
 
                             if (parentItem) {
-                                // 입력 필드 찾기
                                 const inputField = parentItem.querySelector('input[type="text"], .short-input');
 
-                                // 입력 필드에 값이 있으면 결합하기
                                 if (inputField && !inputField.disabled && inputField.value) {
                                     valueText = `${valueText}[${inputField.value}]`;
                                 }
@@ -1183,7 +1007,6 @@
                     }
                 }
 
-                // 3. textarea 처리 (이전 입력이 없는 경우에만)
                 if (!isAnswered) {
                     const textarea = question.querySelector('textarea');
                     if (textarea && textarea.value.trim()) {
@@ -1192,9 +1015,7 @@
                     }
                 }
 
-                // 4. 일반 입력필드 처리 (이전 입력이 없고, 체크박스 항목 내부가 아닌 경우에만)
                 if (!isAnswered) {
-                    // 체크박스 아이템에 포함되지 않은 활성화된 입력 필드만 선택
                     const standalone_input = Array.from(question.querySelectorAll('input.input-field:not([disabled])'))
                         .find(input => !input.closest('.checkbox-item'));
 
@@ -1204,378 +1025,51 @@
                 }
             });
 
-            console.log('최종 수집된 폼 데이터:', result);
             return result;
         }
 
-        
-        // 설문조사 ID 선택 콤보박스 업데이트
-        function updateSurveyIdSelect(surveyIds) {
-            const select = document.getElementById('surveyIdSelect');
-
-            // 기존 옵션 제거
-            while (select.options.length > 1) {
-                select.remove(1);
-            }
-
-            // 새 옵션 추가
-            surveyIds.forEach(survey => {
-                const option = document.createElement('option');
-                option.value = survey.id;
-                option.textContent = survey.display;
-                select.appendChild(option);
-            });
-        }
-
-        // 선택한 설문조사 데이터 불러오기
-        function selectSurvey(surveyId) {
-            if (!surveyId || !tempMemberInfo) return;
-
-            // 선택한 ID에 해당하는 설문조사 데이터 찾기
-            const selectedSurvey = tempMemberInfo.find(survey => survey.surveyId === surveyId);
-
-            if (!selectedSurvey) {
-                showAlert('선택한 설문조사 데이터를 찾을 수 없습니다.', function () {
-                    return;
-                });
-            }
-
-            // 선택된 설문조사의 날짜 표시 가져오기
-            const selectElement = document.getElementById('surveyIdSelect');
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-            const surveyDate = selectedOption.textContent;
-
-            // 헤더 제목 업데이트
-            updateHeaderTitle(surveyDate);
-
-            // 컨트롤 패널의 회원번호 저장
-            const controlPanelMemberNo = document.getElementById('entrymembernumberSearch').value;
-
-            // 데이터를 불러오기 전에 폼 초기화
-            allClear();
-
-            // 컨트롤 패널의 회원번호 복원
-            document.getElementById('entrymembernumberSearch').value = controlPanelMemberNo;
-
-            // 회원 정보 및 직원 정보 채우기
-            document.getElementById('entrymembernumber').value = selectedSurvey.memberNo;
-            document.getElementById('entrymembername').value = selectedSurvey.memberName;
-            document.getElementById('entryemployeenumber').value = selectedSurvey.staffNo;
-            document.getElementById('entryemployeename').value = selectedSurvey.staffName;
-
-            // 폼 데이터 채우기
-            fillFormData(selectedSurvey.formData);
-
-            // 입력 버튼 비활성화, 수정 버튼 활성화
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('editBtn').disabled = false;
-
-            showAlert('선택한 설문조사 데이터를 불러왔습니다.');
-        }
-
-        // 불러온 데이터로 폼 채우기
-        function fillFormData(formData) {
-            console.log('받은 폼 데이터:', formData);
-
-            // 모든 질문 요소 수집
-            const questions = document.querySelectorAll('.question');
-
-            questions.forEach(question => {
-                // 질문 제목(소분류) 가져오기
-                const titleElement = question.querySelector('h4');
-                if (!titleElement) return;
-
-                // 필수 표시 제거
-                const title = titleElement.textContent.replace('*필수', '').trim();
-
-                // 해당 질문에 대한 답변이 있는지 확인
-                if (formData[title]) {
-                    console.log('답변 처리:', title, formData[title]);
-                    const value = formData[title];
-
-                    // 체크박스 처리
-                    const checkboxes = question.querySelectorAll('input[type="checkbox"]');
-                    if (checkboxes.length > 0) {
-                        // 값이 여러 개인 경우
-                        const values = value.includes('_') ? value.split('_') : [value];
-
-                        values.forEach(val => {
-                            console.log('체크박스 값 처리:', val);
-                            let checkboxValue = val;
-                            let inputValue = '';
-
-                            // 입력값이 있는지 확인 ([...] 형식)
-                            if (val.includes('[') && val.includes(']')) {
-                                const matches = val.match(/(.*)\[(.*)\]/);
-                                if (matches && matches.length > 2) {
-                                    checkboxValue = matches[1].trim();
-                                    inputValue = matches[2];
-                                    console.log('입력값 추출:', checkboxValue, inputValue);
-                                }
-                            }
-
-                            // 모든 체크박스 확인
-                            for (let i = 0; i < checkboxes.length; i++) {
-                                const checkbox = checkboxes[i];
-                                const label = checkbox.nextElementSibling.textContent.trim();
-
-                                // 정확한 레이블 비교
-                                if (label === checkboxValue) {
-                                    console.log('체크박스 매칭:', label);
-                                    // 체크박스 체크
-                                    checkbox.checked = true;
-
-                                    // 체크박스 이벤트 트리거하여 연결된 입력 필드 활성화
-                                    toggleInput(checkbox);
-
-                                    // 연결된 입력필드가 있는지 확인
-                                    if (inputValue) {
-                                        const parentItem = checkbox.closest('.checkbox-item');
-                                        if (parentItem) {
-                                            const inputField = parentItem.querySelector('input[type="text"]');
-                                            if (inputField) {
-                                                console.log('입력필드 설정:', inputField);
-                                                inputField.disabled = false;
-                                                inputField.value = inputValue;
-                                            }
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                        });
-                    }
-                    // 라디오 버튼 처리
-                    else if (question.querySelector('.radio-container') || question.querySelectorAll('input[type="radio"]').length > 0) {
-                        let radioValue = value;
-                        let inputValue = '';
-
-                        // 입력값이 있는지 확인 ([...] 형식)
-                        if (value.includes('[') && value.includes(']')) {
-                            const matches = value.match(/(.*)\[(.*)\]/);
-                            if (matches && matches.length > 2) {
-                                radioValue = matches[1].trim();
-                                inputValue = matches[2];
-                            }
-                        }
-
-                        // 먼저 라디오 그룹 내 모든 입력 필드 비활성화 및 초기화
-                        const radioContainer = question.querySelector('.radio-container');
-                        if (radioContainer) {
-                            radioContainer.querySelectorAll('input[type="text"], .short-input').forEach(input => {
-                                input.disabled = true;
-                                input.value = '';
-                            });
-                        } else {
-                            // 이전 구조에서도 모든 입력 필드 초기화
-                            question.querySelectorAll('input[type="text"], .short-input').forEach(input => {
-                                if (input.closest('.radio-item')) {
-                                    input.disabled = true;
-                                    input.value = '';
-                                }
-                            });
-                        }
-                        
-                        // 새 구조에서 라디오 버튼 찾기
-                        let radioButtons;
-                        if (radioContainer) {
-                            radioButtons = radioContainer.querySelectorAll('input[type="radio"]');
-                        } else {
-                            // 이전 구조에서 라디오 버튼 찾기
-                            radioButtons = question.querySelectorAll('input[type="radio"]');
-                        }
-
-                        // 모든 라디오 버튼 선택 해제
-                        radioButtons.forEach(radio => {
-                            radio.checked = false;
-                        });
-
-                        // 정확히 일치하는 라디오 버튼만 선택
-                        radioButtons.forEach(radio => {
-                            const label = radio.nextElementSibling.textContent.trim();
-                            if (label === radioValue) {
-                                // 라디오 버튼 선택
-                                radio.checked = true;
-
-                                // 입력 필드 활성화 및 값 설정
-                                const parentItem = radio.closest('.radio-item');
-                                if (parentItem && inputValue) {
-                                    const inputField = parentItem.querySelector('input[type="text"], .short-input');
-                                    if (inputField) {
-                                        inputField.disabled = false;
-                                        inputField.value = inputValue;
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    // textarea 처리
-                    else if (question.querySelector('textarea')) {
-                        const textarea = question.querySelector('textarea');
-                        textarea.value = value;
-                    }
-                    // 일반 입력필드 처리
-                    else if (question.querySelector('input.input-field:not([disabled])')) {
-                        const inputField = question.querySelector('input.input-field:not([disabled])');
-                        inputField.value = value;
-                    }
-                }
-            });
-        }
-
-        // 컨트롤 패널 토글 기능
-        function togglePanel() {
-            const panel = document.getElementById('controlPanel');
-            panel.classList.toggle('collapsed');
-        }
-
-        // 설문조사 결과 수정 함수
-        async function updateResearch() {
-            // 회원정보 및 직원정보 수집
-            const memberNo = document.querySelector('.info-section .info-row:first-child .info-group:first-child input').value;
-            const memberName = document.querySelector('.info-section .info-row:first-child .info-group:last-child input').value;
-            const staffNo = document.querySelector('.info-section .info-row:last-child .info-group:first-child input').value;
-            const staffName = document.querySelector('.info-section .info-row:last-child .info-group:last-child input').value;
-
-            // 필수 정보 확인
-            if (!memberNo || !memberName) {
-                showAlert('회원번호와 회원명은 필수 입력사항입니다.', function () {
-                    return;
-                });
-                return; // 함수 실행 중단
-            }
-
-            // 직원 정보 필수 확인
-            if (!staffNo || !staffName) {
-                showAlert('직원번호와 직원명도 필수 입력사항입니다.', function () {
-                    return;
-                });
-                return; // 함수 실행 중단
-            }
-
-            // 현재 선택된 설문조사 ID 확인
-            const surveyIdSelect = document.getElementById('surveyIdSelect');
-            const oldSurveyId = surveyIdSelect.value;
-
-            if (!oldSurveyId) {
-                showAlert('수정할 설문조사를 선택해주세요.', function () {
-                    return;
-                });
-                return;
-            }
-
-            // 필수 항목 체크
-            const missingItems = entryCheck();
-            if (missingItems.length > 0) {
-                return; // entryCheck 함수에서 이미 경고 메시지를 표시
-            }
-
-            // 설문조사 데이터 수집
-            const formData = collectFormData();
-
-            // 새 ID 생성 (회원번호_yymmddhhnnss 형식)
-            const now = new Date();
-            const year = now.getFullYear().toString().substr(-2);
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const day = now.getDate().toString().padStart(2, '0');
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            const newSurveyId = `${memberNo}_${year}${month}${day}${hours}${minutes}${seconds}`;
-
-            // 제출할 데이터 구성
-            const updateData = {
-                oldSurveyId: oldSurveyId,
-                newSurveyId: newSurveyId,
-                memberNo: memberNo,
-                memberName: memberName,
-                staffNo: staffNo,
-                staffName: staffName,
-                formData: formData
-            };
-
-            // 확인 메시지
-            showAlert('기존 설문조사 데이터를 수정하시겠습니까?', function () {
-                // 데이터 전송
-                showLoading();
-                (async function() {
-                    try {
-                        const response = await updateResearchData(updateData); // supabase.js의 함수 호출
-                        hideLoading();
-                        if (response && response.success) {
-                            showAlert('설문조사 결과가 성공적으로 수정되었습니다.', function () {
-                                // 성공 후 데이터 다시 불러오기 및 초기화
-                                allClear();
-                                loadMemberSurveys(memberNo);
-                            });
-                        } else {
-                            showAlert('설문조사 결과 수정 실패: ' + (response.message || '알 수 없는 오류'));
-                        }
-                    } catch (error) {
-                        hideLoading();
-                        showAlert('설문조사 결과 수정 중 오류가 발생했습니다: ' + error);
-                    }
-                })();
-            });
-        }
-
-        // 필수 입력 항목 체크 함수
         function entryCheck() {
-            // 누락된 필수 항목 목록
             const missingItems = [];
 
-            // 모든 필수 항목 확인
             document.querySelectorAll('.question h4 .required').forEach(requiredMark => {
                 const questionTitle = requiredMark.parentElement.textContent.replace('*필수', '').trim();
                 const questionElement = requiredMark.closest('.question');
                 let isAnswered = false;
 
-                // 체크박스 확인
                 const checkboxes = questionElement.querySelectorAll('input[type="checkbox"]');
                 if (checkboxes.length > 0) {
-                    // 하나 이상의 체크박스가 선택되었는지 확인
                     isAnswered = Array.from(checkboxes).some(checkbox => checkbox.checked);
                 }
 
-                // 라디오 버튼 확인 (새 구조)
                 const radioContainer = questionElement.querySelector('.radio-container');
                 if (radioContainer) {
                     const radios = radioContainer.querySelectorAll('input[type="radio"]');
                     if (radios.length > 0) {
-                        // 하나 이상의 라디오 버튼이 선택되었는지 확인
                         isAnswered = Array.from(radios).some(radio => radio.checked);
                     }
                 } 
-                // 라디오 버튼 확인 (이전 구조 호환)
                 else {
                     const radios = questionElement.querySelectorAll('input[type="radio"]');
                     if (radios.length > 0) {
-                        // 하나 이상의 라디오 버튼이 선택되었는지 확인
                         isAnswered = Array.from(radios).some(radio => radio.checked);
                     }
                 }
 
-                // 텍스트 입력 필드 확인
                 const textInputs = questionElement.querySelectorAll('input[type="text"]:not([disabled])');
                 if (textInputs.length > 0) {
-                    // 하나 이상의 텍스트 필드에 값이 입력되었는지 확인
                     isAnswered = Array.from(textInputs).some(input => input.value.trim() !== '');
                 }
 
-                // 텍스트 영역 확인
                 const textareas = questionElement.querySelectorAll('textarea');
                 if (textareas.length > 0) {
-                    // 하나 이상의 텍스트 영역에 값이 입력되었는지 확인
                     isAnswered = Array.from(textareas).some(textarea => textarea.value.trim() !== '');
                 }
 
-                // 답변이 없으면 누락 항목에 추가
                 if (!isAnswered) {
                     missingItems.push(questionTitle);
                 }
             });
 
-            // 누락된 필수 항목이 있으면 알림 표시
             if (missingItems.length > 0) {
                 let message = '다음 필수 항목이 입력되지 않았습니다:\n\n';
                 missingItems.forEach((item, index) => {
@@ -1587,101 +1081,511 @@
             return missingItems;
         }
 
-        // 필수조사 페이지 열기 함수
         function openRequiredSurvey() {
             showLoading();
             getSelectedData().then(data => {
                 renderSurvey(data);
-                // 헤더 제목 변경
                 const headerTitle = document.querySelector('.header h1');
                 headerTitle.textContent = "우리집데이케어센터 욕구조사_필수조사";
                 
-                // 버튼 상태 업데이트 (필수조사 활성화, 전체조사 비활성화)
                 document.getElementById('requiredSurveyBtn').classList.add('active');
                 document.getElementById('fullSurveyBtn').classList.remove('active');
                 
                 hideLoading();
             }).catch(error => {
-                console.error('필수 설문조사 데이터 로드 실패:', error);
                 hideLoading();
                 showAlert('필수 설문조사 데이터 로드 실패: ' + error);
             });
-            return false; // 이벤트 중단
+            return false;
         }
 
-        // 전체조사 페이지 열기 함수
         function openFullSurvey() {
             showLoading();
             getData().then(data => {
                 renderSurvey(data);
-                // 헤더 제목 변경
                 const headerTitle = document.querySelector('.header h1');
                 headerTitle.textContent = "우리집데이케어센터 욕구조사_전체조사";
                 
-                // 버튼 상태 업데이트 (전체조사 활성화, 필수조사 비활성화)
                 document.getElementById('requiredSurveyBtn').classList.remove('active');
                 document.getElementById('fullSurveyBtn').classList.add('active');
                 
                 hideLoading();
             }).catch(error => {
-                console.error('전체 설문조사 데이터 로드 실패:', error);
                 hideLoading();
                 showAlert('전체 설문조사 데이터 로드 실패: ' + error);
             });
-            return false; // 이벤트 중단 (기본 동작 방지)
+            return false;
         }
 
-        // 이벤트 리스너 설정 함수
         function setupEventListeners() {
-            console.log('이벤트 리스너 설정 중...');
-
-            // 회원번호 입력 필드 클릭 시 모달 표시
             const entrymembernumber = document.getElementById('entrymembernumber');
+
             if (entrymembernumber) {
-                console.log('회원번호 입력 필드 찾음:', entrymembernumber);
                 entrymembernumber.addEventListener('click', function () {
-                    console.log('회원번호 입력 필드 클릭됨');
                     showMemberSelectModal('entrymembernumber');
                 });
+
+                entrymembernumber.onclick = function () {};
             } else {
-                console.error('회원번호 입력 필드(entrymembernumber)를 찾을 수 없습니다');
+                const similarInputs = Array.from(document.querySelectorAll('input'))
+                    .filter(input => input.id && input.id.includes('member'));
             }
 
-            // 회원번호 검색 필드 클릭 시 모달 표시
+            const entryemployeenumber = document.getElementById('entryemployeenumber');
+
+            if (entryemployeenumber) {
+                entryemployeenumber.addEventListener('click', function () {
+                    showEmployeeSelectModal();
+                });
+
+                entryemployeenumber.onclick = function () {};
+            } else {
+                const similarInputs = Array.from(document.querySelectorAll('input'))
+                    .filter(input => input.id && input.id.includes('employee'));
+            }
+
             const entrymembernumberSearch = document.getElementById('entrymembernumberSearch');
+
             if (entrymembernumberSearch) {
-                console.log('회원번호 검색 필드 찾음:', entrymembernumberSearch);
-                // 인라인 onchange 속성 제거
                 entrymembernumberSearch.removeAttribute('onchange');
 
-                // 클릭 이벤트 리스너 추가
                 entrymembernumberSearch.addEventListener('click', function () {
-                    console.log('회원번호 검색 필드 클릭됨');
                     showMemberSelectModal('entrymembernumberSearch');
                 });
 
-                // change 이벤트 리스너 추가
+                entrymembernumberSearch.onclick = function () {};
+
                 entrymembernumberSearch.addEventListener('change', function () {
-                    console.log('회원번호 검색 값 변경됨:', this.value);
                     if (typeof loadMemberSurveys === 'function') {
                         loadMemberSurveys(this.value);
                     }
                 });
             }
 
-            // 회원 모달 닫기 버튼 클릭 시 모달 닫기
             const memberModalClose = document.getElementById('memberModalClose');
             if (memberModalClose) {
-                memberModalClose.addEventListener('click', closeMemberSelectModal);
+                memberModalClose.addEventListener('click', function () {
+                    closeMemberSelectModal();
+                });
             }
 
-            // 회원 모달 취소 버튼 클릭 시 모달 닫기
             const cancelMemberSelectBtn = document.getElementById('cancelMemberSelectBtn');
             if (cancelMemberSelectBtn) {
-                cancelMemberSelectBtn.addEventListener('click', closeMemberSelectModal);
+                cancelMemberSelectBtn.addEventListener('click', function () {
+                    closeMemberSelectModal();
+                });
             }
 
-            // 회원 선택 버튼 클릭 시 선택한 회원 정보 입력 후 모달 닫기
+            const employeeModalClose = document.getElementById('employeeModalClose');
+            if (employeeModalClose) {
+                employeeModalClose.addEventListener('click', function () {
+                    closeEmployeeSelectModal();
+                });
+            }
+
+            const cancelEmployeeSelectBtn = document.getElementById('cancelEmployeeSelectBtn');
+            if (cancelEmployeeSelectBtn) {
+                cancelEmployeeSelectBtn.addEventListener('click', function () {
+                    closeEmployeeSelectModal();
+                });
+            }
+
+            if (!document.getElementById('memberSelectModal') || !document.getElementById('employeeSelectModal')) {
+                const modalElements = document.querySelectorAll('.modal-overlay, .modal');
+                modalElements.forEach((el, idx) => {});
+            }
+        }
+
+        let membersList = [];
+        let selectedMember = null;
+        let employeesList = [];
+        let selectedEmployee = null;
+        let currentMemberTargetId = null;
+
+        async function loadMembersData() {
+            showLoading();
+            try {
+                const data = await getMemberData();
+                if (data && data.length > 0) {
+                    membersList = data.map(member => {
+                        return {
+                            memberNo: member.회원번호,
+                            memberName: member.회원명
+                        };
+                    });
+
+                    membersList.sort((a, b) => a.memberName.localeCompare(b.memberName, 'ko-KR'));
+
+                    if (document.getElementById('memberSelectModal').style.display === 'flex') {
+                        renderMembersList();
+                    }
+                }
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                showAlert('회원 목록을 가져오는 데 실패했습니다: ' + error);
+            }
+        }
+
+        function showMemberSelectModal(targetId) {
+            currentMemberTargetId = targetId || 'entrymembernumber';
+
+            const memberList = document.getElementById('memberList');
+
+            if (!memberList) {
+                return;
+            }
+
+            memberList.innerHTML = '';
+            selectedMember = null;
+
+            if (!membersList || membersList.length === 0) {
+                loadMembersData();
+                memberList.innerHTML = '<div class="no-items">회원 정보를 불러오는 중...</div>';
+                return;
+            }
+
+            renderMembersList();
+
+            const searchInput = document.getElementById('memberSearchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+
+            const memberSelectModal = document.getElementById('memberSelectModal');
+
+            if (memberSelectModal) {
+                memberSelectModal.style.display = 'flex';
+            }
+        }
+
+        function renderMembersList() {
+            const memberList = document.getElementById('memberList');
+
+            if (!memberList) {
+                return;
+            }
+
+            memberList.innerHTML = '';
+
+            membersList.forEach(member => {
+                const memberItem = document.createElement('div');
+                memberItem.className = 'modal-item';
+                memberItem.innerHTML = `<strong>${member.memberNo}</strong> ${member.memberName}`;
+                
+                memberItem.setAttribute('data-member-number', member.memberNo);
+                memberItem.setAttribute('data-member-name', member.memberName);
+
+                memberItem.addEventListener('click', function () {
+                    document.querySelectorAll('#memberList .modal-item.selected').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+
+                    this.classList.add('selected');
+                    selectedMember = member;
+                });
+
+                memberItem.addEventListener('dblclick', function () {
+                    selectMemberForTarget(member);
+                });
+
+                memberList.appendChild(memberItem);
+            });
+        }
+
+        function resetSurveyForm() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+
+                const parentDiv = checkbox.closest('.checkbox-item');
+                if (parentDiv) {
+                    const inputField = parentDiv.querySelector('input[type="text"]');
+                    if (inputField) {
+                        inputField.disabled = true;
+                        inputField.value = '';
+                    }
+                }
+            });
+
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+
+            document.querySelectorAll('.question input[type="text"], textarea').forEach(input => {
+                input.value = '';
+            });
+
+            const editBtn = document.getElementById('editBtn');
+            if (editBtn) {
+                editBtn.disabled = true;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+        }
+
+        function selectMemberForTarget(member) {
+            if (!member) return;
+
+            if (currentMemberTargetId === 'entrymembernumber') {
+                document.getElementById('entrymembernumber').value = member.memberNo;
+                document.getElementById('entrymembername').value = member.memberName;
+
+                resetSurveyForm();
+            } else if (currentMemberTargetId === 'entrymembernumberSearch') {
+                document.getElementById('entrymembernumberSearch').value = member.memberNo;
+                if (typeof loadMemberSurveys === 'function') {
+                    loadMemberSurveys(member.memberNo);
+                }
+            } else {
+                const targetInput = document.getElementById(currentMemberTargetId);
+                if (targetInput) {
+                    targetInput.value = member.memberNo;
+                }
+            }
+
+            closeMemberSelectModal();
+        }
+
+        function selectEmployee(employeeNumber, employeeName) {
+            document.getElementById('entryemployeenumber').value = employeeNumber;
+            document.getElementById('entryemployeename').value = employeeName;
+
+            resetSurveyForm();
+
+            closeEmployeeSelectModal();
+        }
+
+        function closeMemberSelectModal() {
+            document.getElementById('memberSelectModal').style.display = 'none';
+        }
+
+        function closeEmployeeSelectModal() {
+            document.getElementById('employeeSelectModal').style.display = 'none';
+        }
+
+        function searchEmployees() {
+            const searchInput = document.getElementById('employeeSearchInput').value.toLowerCase();
+            const employeeItems = document.querySelectorAll('#employeeList .modal-item');
+
+            let hasVisible = false;
+
+            employeeItems.forEach(item => {
+                const employeeNo = item.getAttribute('data-employee-number')?.toLowerCase() || '';
+                const employeeName = item.getAttribute('data-employee-name')?.toLowerCase() || '';
+                const text = item.textContent.toLowerCase();
+                
+                if (employeeNo.includes(searchInput) || employeeName.includes(searchInput) || text.includes(searchInput)) {
+                    item.style.display = 'block';
+                    hasVisible = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (!hasVisible && employeeItems.length > 0) {
+                const employeeList = document.getElementById('employeeList');
+
+                if (!document.querySelector('#employeeList .no-search-results')) {
+                    const noResults = document.createElement('div');
+                    noResults.className = 'no-items no-search-results';
+                    noResults.textContent = '검색 결과가 없습니다.';
+                    employeeList.appendChild(noResults);
+                }
+            } else {
+                const noResults = document.querySelector('#employeeList .no-search-results');
+                if (noResults) {
+                    noResults.remove();
+                }
+            }
+        }
+
+        async function loadEmployeeData() {
+            showLoading();
+            try {
+                const data = await getEmployeeData();
+                if (data && data.length > 0) {
+                    employeesList = data.map(employee => {
+                        return {
+                            employeeNo: employee.직원번호,
+                            employeeName: employee.직원명
+                        };
+                    });
+
+                    employeesList.sort((a, b) => a.employeeName.localeCompare(b.employeeName, 'ko-KR'));
+
+                    if (document.getElementById('employeeSelectModal').style.display === 'flex') {
+                        renderEmployeeList();
+                    }
+                }
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                showAlert('직원 목록을 가져오는 데 실패했습니다: ' + error);
+            }
+        }
+
+        function showEmployeeSelectModal() {
+            const employeeList = document.getElementById('employeeList');
+
+            if (!employeeList) {
+                return;
+            }
+
+            employeeList.innerHTML = '';
+            selectedEmployee = null;
+
+            if (!employeesList || employeesList.length === 0) {
+                loadEmployeeData();
+                employeeList.innerHTML = '<div class="no-items">직원 정보를 불러오는 중...</div>';
+                return;
+            }
+
+            renderEmployeeList();
+
+            const searchInput = document.getElementById('employeeSearchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+
+            const employeeSelectModal = document.getElementById('employeeSelectModal');
+
+            if (employeeSelectModal) {
+                employeeSelectModal.style.display = 'flex';
+            }
+        }
+
+        function renderEmployeeList() {
+            const employeeList = document.getElementById('employeeList');
+
+            if (!employeeList) {
+                return;
+            }
+
+            employeeList.innerHTML = '';
+
+            employeesList.forEach(employee => {
+                const employeeItem = document.createElement('div');
+                employeeItem.className = 'modal-item';
+                employeeItem.innerHTML = `<strong>${employee.employeeNo}</strong> ${employee.employeeName}`;
+                
+                employeeItem.setAttribute('data-employee-number', employee.employeeNo);
+                employeeItem.setAttribute('data-employee-name', employee.employeeName);
+
+                employeeItem.addEventListener('click', function () {
+                    document.querySelectorAll('#employeeList .modal-item.selected').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+
+                    this.classList.add('selected');
+                    selectedEmployee = employee;
+                });
+
+                employeeItem.addEventListener('dblclick', function () {
+                    selectEmployee(employee.employeeNo, employee.employeeName);
+                });
+
+                employeeList.appendChild(employeeItem);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            setupEventListeners();
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    if (document.getElementById('memberSelectModal').style.display === 'flex') {
+                        closeMemberSelectModal();
+                    }
+                    if (document.getElementById('employeeSelectModal').style.display === 'flex') {
+                        closeEmployeeSelectModal();
+                    }
+                }
+            });
+        });
+
+        function initialize() {
+            showLoading();
+            getData().then(data => {
+                renderSurvey(data);
+                
+                document.getElementById('fullSurveyBtn').classList.add('active');
+                document.getElementById('requiredSurveyBtn').classList.remove('active');
+                
+                hideLoading();
+            }).catch(error => {
+                hideLoading();
+                showAlert('설문조사 데이터 로드 실패: ' + error);
+            });
+
+            updateHeaderTitle();
+
+            loadMembersData();
+
+            loadEmployeeData();
+        }
+
+        function setupEventListeners() {
+            const entrymembernumber = document.getElementById('entrymembernumber');
+
+            if (entrymembernumber) {
+                entrymembernumber.addEventListener('click', function () {
+                    showMemberSelectModal('entrymembernumber');
+                });
+
+                entrymembernumber.onclick = function () {};
+            } else {
+                const similarInputs = Array.from(document.querySelectorAll('input'))
+                    .filter(input => input.id && input.id.includes('member'));
+            }
+
+            const entryemployeenumber = document.getElementById('entryemployeenumber');
+
+            if (entryemployeenumber) {
+                entryemployeenumber.addEventListener('click', function () {
+                    showEmployeeSelectModal();
+                });
+
+                entryemployeenumber.onclick = function () {};
+            } else {
+                const similarInputs = Array.from(document.querySelectorAll('input'))
+                    .filter(input => input.id && input.id.includes('employee'));
+            }
+
+            const entrymembernumberSearch = document.getElementById('entrymembernumberSearch');
+
+            if (entrymembernumberSearch) {
+                entrymembernumberSearch.removeAttribute('onchange');
+
+                entrymembernumberSearch.addEventListener('click', function () {
+                    showMemberSelectModal('entrymembernumberSearch');
+                });
+
+                entrymembernumberSearch.onclick = function () {};
+
+                entrymembernumberSearch.addEventListener('change', function () {
+                    if (typeof loadMemberSurveys === 'function') {
+                        loadMemberSurveys(this.value);
+                    }
+                });
+            }
+
+            const memberModalClose = document.getElementById('memberModalClose');
+            if (memberModalClose) {
+                memberModalClose.addEventListener('click', function () {
+                    closeMemberSelectModal();
+                });
+            }
+
+            const cancelMemberSelectBtn = document.getElementById('cancelMemberSelectBtn');
+            if (cancelMemberSelectBtn) {
+                cancelMemberSelectBtn.addEventListener('click', function () {
+                    closeMemberSelectModal();
+                });
+            }
+
             const selectMemberBtn = document.getElementById('selectMemberBtn');
             if (selectMemberBtn) {
                 selectMemberBtn.addEventListener('click', function () {
@@ -1693,31 +1597,20 @@
                 });
             }
 
-            // 직원번호 입력 필드 클릭 시 모달 표시
-            const entryemployeenumber = document.getElementById('entryemployeenumber');
-            if (entryemployeenumber) {
-                console.log('직원번호 입력 필드 찾음:', entryemployeenumber);
-                entryemployeenumber.addEventListener('click', function () {
-                    console.log('직원번호 입력 필드 클릭됨');
-                    showEmployeeSelectModal();
-                });
-            } else {
-                console.error('직원번호 입력 필드(entryemployeenumber)를 찾을 수 없습니다');
-            }
-
-            // 직원 모달 닫기 버튼 클릭 시 모달 닫기
             const employeeModalClose = document.getElementById('employeeModalClose');
             if (employeeModalClose) {
-                employeeModalClose.addEventListener('click', closeEmployeeSelectModal);
+                employeeModalClose.addEventListener('click', function () {
+                    closeEmployeeSelectModal();
+                });
             }
 
-            // 직원 모달 취소 버튼 클릭 시 모달 닫기
             const cancelEmployeeSelectBtn = document.getElementById('cancelEmployeeSelectBtn');
             if (cancelEmployeeSelectBtn) {
-                cancelEmployeeSelectBtn.addEventListener('click', closeEmployeeSelectModal);
+                cancelEmployeeSelectBtn.addEventListener('click', function () {
+                    closeEmployeeSelectModal();
+                });
             }
 
-            // 직원 선택 버튼 클릭 시 선택한 직원 정보 입력 후 모달 닫기
             const selectEmployeeBtn = document.getElementById('selectEmployeeBtn');
             if (selectEmployeeBtn) {
                 selectEmployeeBtn.addEventListener('click', function () {
@@ -1731,628 +1624,8 @@
                     }
                 });
             }
-
-            console.log('이벤트 리스너 설정 완료');
         }
 
-        // 전역 변수로 회원 목록과 직원 목록 데이터 저장
-        let membersList = [];
-        let selectedMember = null;
-        let employeesList = [];
-        let selectedEmployee = null;
-        let currentMemberTargetId = null; // 회원 선택 모달에서 결과를 넣을 대상 input의 ID
-
-        // 회원 목록 데이터 로드
-        async function loadMembersData() {
-            showLoading();
-            try {
-                const data = await getMemberData(); // supabase.js의 함수 호출
-                if (data && data.length > 0) {
-                    // 회원 데이터를 회원번호와 회원명으로 매핑
-                    membersList = data.map(member => {
-                        return {
-                            memberNo: member.회원번호,
-                            memberName: member.회원명
-                        };
-                    });
-
-                    // 회원명순으로 정렬
-                    membersList.sort((a, b) => a.memberName.localeCompare(b.memberName, 'ko-KR'));
-
-                    console.log('회원 목록 로드 완료:', membersList.length + '명 (이름순 정렬)');
-
-                    // 모달이 띄워져 있는 경우 회원 목록 다시 렌더링
-                    if (document.getElementById('memberSelectModal').style.display === 'flex') {
-                        renderMembersList();
-                    }
-                } else {
-                    console.error('회원 데이터가 없습니다.');
-                }
-                hideLoading();
-            } catch (error) {
-                hideLoading();
-                console.error('회원 목록 로드 실패:', error);
-                showAlert('회원 목록을 가져오는 데 실패했습니다: ' + error);
-            }
-        }
-
-        // 회원 선택 모달 표시 (대상 ID 지정)
-        function showMemberSelectModal(targetId) {
-            console.log('==== showMemberSelectModal 함수 호출됨 ====');
-            console.log('대상 ID:', targetId);
-
-            currentMemberTargetId = targetId || 'entrymembernumber';
-            console.log('currentMemberTargetId 설정:', currentMemberTargetId);
-
-            const memberList = document.getElementById('memberList');
-            console.log('memberList 요소 존재 여부:', !!memberList);
-
-            if (!memberList) {
-                console.error('회원 목록 컨테이너(#memberList)를 찾을 수 없습니다');
-                console.log('DOM에 #memberList 요소가 있는지 확인:', document.querySelectorAll('#memberList').length);
-                return;
-            }
-
-            memberList.innerHTML = '';
-            selectedMember = null;
-
-            console.log('membersList 데이터 상태:', {
-                exists: !!membersList,
-                length: membersList ? membersList.length : 0
-            });
-
-            if (!membersList || membersList.length === 0) {
-                console.log('회원 목록이 비어 있어 서버에서 가져오기 시도');
-                loadMembersData();
-                memberList.innerHTML = '<div class="no-items">회원 정보를 불러오는 중...</div>';
-                return;
-            }
-
-            renderMembersList();
-
-            // 검색 필드 초기화
-            const searchInput = document.getElementById('memberSearchInput');
-            if (searchInput) {
-                searchInput.value = '';
-            }
-
-            const memberSelectModal = document.getElementById('memberSelectModal');
-            console.log('memberSelectModal 요소 존재 여부:', !!memberSelectModal);
-            console.log('memberSelectModal 요소 ID:', memberSelectModal ? memberSelectModal.id : 'undefined');
-            console.log('memberSelectModal 클래스:', memberSelectModal ? memberSelectModal.className : 'undefined');
-
-            if (memberSelectModal) {
-                memberSelectModal.style.display = 'flex';
-                console.log('memberSelectModal display 속성 설정 완료:', memberSelectModal.style.display);
-            } else {
-                console.error('회원 선택 모달(#memberSelectModal)을 찾을 수 없습니다');
-            }
-
-            console.log('==== showMemberSelectModal 함수 종료 ====');
-        }
-
-        // 회원 목록 렌더링 함수
-        function renderMembersList() {
-            const memberList = document.getElementById('memberList');
-
-            if (!memberList) {
-                console.error('회원 목록 컨테이너를 찾을 수 없습니다');
-                return;
-            }
-
-            memberList.innerHTML = '';
-
-            membersList.forEach(member => {
-                const memberItem = document.createElement('div');
-                memberItem.className = 'modal-item';
-                memberItem.innerHTML = `<strong>${member.memberNo}</strong> ${member.memberName}`;
-                
-                // 검색을 위한 data 속성 추가
-                memberItem.setAttribute('data-member-number', member.memberNo);
-                memberItem.setAttribute('data-member-name', member.memberName);
-
-                memberItem.addEventListener('click', function () {
-                    // 이전 선택 항목 해제
-                    document.querySelectorAll('#memberList .modal-item.selected').forEach(item => {
-                        item.classList.remove('selected');
-                    });
-
-                    // 현재 항목 선택
-                    this.classList.add('selected');
-                    selectedMember = member;
-                });
-
-                // 더블클릭으로 즉시 선택
-                memberItem.addEventListener('dblclick', function () {
-                    selectMemberForTarget(member);
-                });
-
-                memberList.appendChild(memberItem);
-            });
-        }
-
-        // 설문지 초기화 함수
-        function resetSurveyForm() {
-            console.log('설문지 초기화 중...');
-
-            // 체크박스 초기화
-            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.checked = false;
-
-                // 체크박스와 연결된 입력 필드가 있으면 비활성화
-                const parentDiv = checkbox.closest('.checkbox-item');
-                if (parentDiv) {
-                    const inputField = parentDiv.querySelector('input[type="text"]');
-                    if (inputField) {
-                        inputField.disabled = true;
-                        inputField.value = '';
-                    }
-                }
-            });
-
-            // 라디오 버튼 초기화
-            document.querySelectorAll('input[type="radio"]').forEach(radio => {
-                radio.checked = false;
-            });
-
-            // 텍스트 입력 필드 초기화 (회원/직원 정보 제외)
-            document.querySelectorAll('.question input[type="text"], textarea').forEach(input => {
-                input.value = '';
-            });
-
-            // 수정 버튼 비활성화
-            const editBtn = document.getElementById('editBtn');
-            if (editBtn) {
-                editBtn.disabled = true;
-            }
-
-            // 입력 버튼 활성화
-            const submitBtn = document.getElementById('submitBtn');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-            }
-
-            console.log('설문지 초기화 완료');
-        }
-
-        // 타겟에 맞는 회원 선택 처리
-        function selectMemberForTarget(member) {
-            if (!member) return;
-
-            // 대상 ID에 따라 다른 처리
-            if (currentMemberTargetId === 'entrymembernumber') {
-                // 기존 회원번호 필드
-                document.getElementById('entrymembernumber').value = member.memberNo;
-                document.getElementById('entrymembername').value = member.memberName;
-
-                // 회원 변경 시 설문지 초기화
-                resetSurveyForm();
-            } else if (currentMemberTargetId === 'entrymembernumberSearch') {
-                // 검색용 회원번호 필드
-                document.getElementById('entrymembernumberSearch').value = member.memberNo;
-                // 검색 함수 호출 (필요한 경우)
-                if (typeof loadMemberSurveys === 'function') {
-                    loadMemberSurveys(member.memberNo);
-                }
-            } else {
-                // 다른 타겟 ID가 있다면 여기에 추가
-                const targetInput = document.getElementById(currentMemberTargetId);
-                if (targetInput) {
-                    targetInput.value = member.memberNo;
-                }
-            }
-
-            // 모달 닫기
-            closeMemberSelectModal();
-        }
-
-        function selectEmployee(employeeNumber, employeeName) {
-            // 선택된 직원 정보 입력
-            document.getElementById('entryemployeenumber').value = employeeNumber;
-            document.getElementById('entryemployeename').value = employeeName;
-
-            // 직원 변경 시 설문지 초기화
-            resetSurveyForm();
-
-            // 모달 닫기
-            closeEmployeeSelectModal();
-        }
-
-        // 회원 모달 닫기 함수
-        function closeMemberSelectModal() {
-            document.getElementById('memberSelectModal').style.display = 'none';
-        }
-
-        function closeEmployeeSelectModal() {
-            document.getElementById('employeeSelectModal').style.display = 'none';
-        }
-
-        // 직원 검색 함수
-        function searchEmployees() {
-            const searchInput = document.getElementById('employeeSearchInput').value.toLowerCase();
-            const employeeItems = document.querySelectorAll('#employeeList .modal-item');
-
-            let hasVisible = false;
-
-            employeeItems.forEach(item => {
-                // 직원번호와 직원명 모두 검색 대상에 포함
-                const employeeNo = item.getAttribute('data-employee-number')?.toLowerCase() || '';
-                const employeeName = item.getAttribute('data-employee-name')?.toLowerCase() || '';
-                const text = item.textContent.toLowerCase();
-                
-                // 직원번호나 직원명에 검색어가 포함되어 있으면 표시
-                if (employeeNo.includes(searchInput) || employeeName.includes(searchInput) || text.includes(searchInput)) {
-                    item.style.display = 'block';
-                    hasVisible = true;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-
-            // 검색 결과가 없는 경우
-            if (!hasVisible && employeeItems.length > 0) {
-                const employeeList = document.getElementById('employeeList');
-
-                // 이미 '검색 결과 없음' 메시지가 있는지 확인
-                if (!document.querySelector('#employeeList .no-search-results')) {
-                    const noResults = document.createElement('div');
-                    noResults.className = 'no-items no-search-results';
-                    noResults.textContent = '검색 결과가 없습니다.';
-                    employeeList.appendChild(noResults);
-                }
-            } else {
-                // 검색 결과가 있으면 '검색 결과 없음' 메시지 제거
-                const noResults = document.querySelector('#employeeList .no-search-results');
-                if (noResults) {
-                    noResults.remove();
-                }
-            }
-        }
-
-        // 직원 정보 데이터 로드 후 직접 실행 - 주석 삭제
-
-        // 직원 목록 데이터 로드
-        async function loadEmployeeData() {
-            showLoading();
-            try {
-                const data = await getEmployeeData(); // supabase.js의 함수 호출
-                if (data && data.length > 0) {
-                    // 직원 데이터를 직원번호와 직원명으로 매핑
-                    employeesList = data.map(employee => {
-                        return {
-                            employeeNo: employee.직원번호,
-                            employeeName: employee.직원명
-                        };
-                    });
-
-                    // 직원명순으로 정렬
-                    employeesList.sort((a, b) => a.employeeName.localeCompare(b.employeeName, 'ko-KR'));
-
-                    console.log('직원 목록 로드 완료:', employeesList.length + '명 (이름순 정렬)');
-
-                    // 모달이 띄워져 있는 경우 직원 목록 다시 렌더링
-                    if (document.getElementById('employeeSelectModal').style.display === 'flex') {
-                        renderEmployeeList();
-                    }
-                } else {
-                    console.error('직원 데이터가 없습니다.');
-                }
-                hideLoading();
-            } catch (error) {
-                hideLoading();
-                console.error('직원 목록 로드 실패:', error);
-                showAlert('직원 목록을 가져오는 데 실패했습니다: ' + error);
-            }
-        }
-
-        // 직원 선택 모달 함수
-        function showEmployeeSelectModal() {
-            console.log('==== showEmployeeSelectModal 함수 호출됨 ====');
-
-            const employeeList = document.getElementById('employeeList');
-            console.log('employeeList 요소 존재 여부:', !!employeeList);
-
-            if (!employeeList) {
-                console.error('직원 목록 컨테이너(#employeeList)를 찾을 수 없습니다');
-                console.log('DOM에 #employeeList 요소가 있는지 확인:', document.querySelectorAll('#employeeList').length);
-                return;
-            }
-
-            employeeList.innerHTML = '';
-            selectedEmployee = null;
-
-            console.log('employeesList 데이터 상태:', {
-                exists: !!employeesList,
-                length: employeesList ? employeesList.length : 0
-            });
-
-            if (!employeesList || employeesList.length === 0) {
-                console.log('직원 목록이 비어 있어 서버에서 가져오기 시도');
-                loadEmployeeData();
-                employeeList.innerHTML = '<div class="no-items">직원 정보를 불러오는 중...</div>';
-                return;
-            }
-
-            renderEmployeeList();
-
-            // 검색 필드 초기화
-            const searchInput = document.getElementById('employeeSearchInput');
-            if (searchInput) {
-                searchInput.value = '';
-            }
-
-            const employeeSelectModal = document.getElementById('employeeSelectModal');
-            console.log('employeeSelectModal 요소 존재 여부:', !!employeeSelectModal);
-            console.log('employeeSelectModal 요소 ID:', employeeSelectModal ? employeeSelectModal.id : 'undefined');
-            console.log('employeeSelectModal 클래스:', employeeSelectModal ? employeeSelectModal.className : 'undefined');
-
-            if (employeeSelectModal) {
-                employeeSelectModal.style.display = 'flex';
-                console.log('employeeSelectModal display 속성 설정 완료:', employeeSelectModal.style.display);
-            } else {
-                console.error('직원 선택 모달(#employeeSelectModal)을 찾을 수 없습니다');
-            }
-
-            console.log('==== showEmployeeSelectModal 함수 종료 ====');
-        }
-
-        // 직원 목록 렌더링 함수
-        function renderEmployeeList() {
-            const employeeList = document.getElementById('employeeList');
-
-            if (!employeeList) {
-                console.error('직원 목록 컨테이너를 찾을 수 없습니다');
-                return;
-            }
-
-            employeeList.innerHTML = '';
-
-            employeesList.forEach(employee => {
-                const employeeItem = document.createElement('div');
-                employeeItem.className = 'modal-item';
-                employeeItem.innerHTML = `<strong>${employee.employeeNo}</strong> ${employee.employeeName}`;
-                
-                // 검색을 위한 data 속성 추가
-                employeeItem.setAttribute('data-employee-number', employee.employeeNo);
-                employeeItem.setAttribute('data-employee-name', employee.employeeName);
-
-                employeeItem.addEventListener('click', function () {
-                    // 이전 선택 항목 해제
-                    document.querySelectorAll('#employeeList .modal-item.selected').forEach(item => {
-                        item.classList.remove('selected');
-                    });
-
-                    // 현재 항목 선택
-                    this.classList.add('selected');
-                    selectedEmployee = employee;
-                });
-
-                // 더블클릭으로 즉시 선택
-                employeeItem.addEventListener('dblclick', function () {
-                    selectEmployee(employee.employeeNo, employee.employeeName);
-                });
-
-                employeeList.appendChild(employeeItem);
-            });
-        }
-
-        // 회원 선택 모달 관련 이벤트 리스너 설정
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('DOM fully loaded');
-
-            // 초기화 후 이벤트 리스너 설정
-            console.log('Setting up event listeners');
-            setupEventListeners();
-            console.log('Event listeners setup complete');
-
-            // ESC 키로 모달 닫기
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') {
-                    if (document.getElementById('memberSelectModal').style.display === 'flex') {
-                        closeMemberSelectModal();
-                    }
-                    if (document.getElementById('employeeSelectModal').style.display === 'flex') {
-                        closeEmployeeSelectModal();
-                    }
-                }
-            });
-        });
-
-        // 초기화 함수 - 모든 초기 설정을 담당
-        function initialize() {
-            console.log('App initializing...');
-
-            // 설문 데이터 로드
-            showLoading();
-            getData().then(data => {
-                renderSurvey(data);
-                
-                // 전체조사 버튼 활성화
-                document.getElementById('fullSurveyBtn').classList.add('active');
-                document.getElementById('requiredSurveyBtn').classList.remove('active');
-                
-                hideLoading();
-            }).catch(error => {
-                console.error('설문조사 데이터 로드 실패:', error);
-                hideLoading();
-                showAlert('설문조사 데이터 로드 실패: ' + error);
-            });
-
-            // 초기 헤더 제목 설정
-            updateHeaderTitle();
-
-            // 회원 정보 가져오기
-            loadMembersData();
-
-            // 직원 정보 가져오기
-            loadEmployeeData();
-
-            console.log('App initialization complete');
-        }
-
-        // 모든 이벤트 리스너 설정
-        function setupEventListeners() {
-            console.log('==== setupEventListeners 함수 시작 ====');
-
-            // 회원번호 입력 필드 클릭 시 모달 표시
-            const entrymembernumber = document.getElementById('entrymembernumber');
-            console.log('entrymembernumber 요소 존재 여부:', !!entrymembernumber);
-
-            if (entrymembernumber) {
-                console.log('회원번호 입력 필드 찾음:', entrymembernumber.id);
-                entrymembernumber.addEventListener('click', function () {
-                    console.log('회원번호 입력 필드 클릭됨');
-                    showMemberSelectModal('entrymembernumber');
-                });
-
-                // 디버깅을 위한 추가 코드
-                entrymembernumber.onclick = function () {
-                    console.log('onclick 이벤트 발생 - 회원번호 입력 필드');
-                };
-
-                console.log('회원번호 입력 필드에 이벤트 리스너 설정됨');
-            } else {
-                console.error('회원번호 입력 필드(entrymembernumber)를 찾을 수 없습니다');
-
-                // 비슷한 ID를 가진 요소 찾기
-                const similarInputs = Array.from(document.querySelectorAll('input'))
-                    .filter(input => input.id && input.id.includes('member'));
-
-                console.log('비슷한 회원 관련 입력 필드:', similarInputs.map(el => ({ id: el.id, type: el.type })));
-            }
-
-            // 직원번호 입력 필드 클릭 시 모달 표시
-            const entryemployeenumber = document.getElementById('entryemployeenumber');
-            console.log('entryemployeenumber 요소 존재 여부:', !!entryemployeenumber);
-
-            if (entryemployeenumber) {
-                console.log('직원번호 입력 필드 찾음:', entryemployeenumber.id);
-                entryemployeenumber.addEventListener('click', function () {
-                    console.log('직원번호 입력 필드 클릭됨');
-                    showEmployeeSelectModal();
-                });
-
-                // 디버깅을 위한 추가 코드
-                entryemployeenumber.onclick = function () {
-                    console.log('onclick 이벤트 발생 - 직원번호 입력 필드');
-                };
-
-                console.log('직원번호 입력 필드에 이벤트 리스너 설정됨');
-            } else {
-                console.error('직원번호 입력 필드(entryemployeenumber)를 찾을 수 없습니다');
-
-                // 비슷한 ID를 가진 요소 찾기
-                const similarInputs = Array.from(document.querySelectorAll('input'))
-                    .filter(input => input.id && input.id.includes('employee'));
-
-                console.log('비슷한 직원 관련 입력 필드:', similarInputs.map(el => ({ id: el.id, type: el.type })));
-            }
-
-            // 모달 요소 디버깅
-            console.log('모달 관련 요소 확인:');
-            console.log('memberSelectModal 존재 여부:', !!document.getElementById('memberSelectModal'));
-            console.log('employeeSelectModal 존재 여부:', !!document.getElementById('employeeSelectModal'));
-
-            // 회원번호 검색 필드 클릭 시 모달 표시
-            const entrymembernumberSearch = document.getElementById('entrymembernumberSearch');
-            console.log('entrymembernumberSearch 요소 존재 여부:', !!entrymembernumberSearch);
-
-            if (entrymembernumberSearch) {
-                console.log('회원번호 검색 필드 찾음:', entrymembernumberSearch.id);
-
-                // 인라인 onchange 속성 제거
-                entrymembernumberSearch.removeAttribute('onchange');
-
-                // 클릭 이벤트 리스너 추가
-                entrymembernumberSearch.addEventListener('click', function () {
-                    console.log('회원번호 검색 필드 클릭됨');
-                    showMemberSelectModal('entrymembernumberSearch');
-                });
-
-                // 디버깅을 위한 추가 코드
-                entrymembernumberSearch.onclick = function () {
-                    console.log('onclick 이벤트 발생 - 회원번호 검색 필드');
-                };
-
-                // change 이벤트 리스너 추가
-                entrymembernumberSearch.addEventListener('change', function () {
-                    console.log('회원번호 검색 값 변경됨:', this.value);
-                    if (typeof loadMemberSurveys === 'function') {
-                        loadMemberSurveys(this.value);
-                    }
-                });
-
-                console.log('회원번호 검색 필드에 이벤트 리스너 설정됨');
-            } else {
-                console.error('회원번호 검색 필드(entrymembernumberSearch)를 찾을 수 없습니다');
-            }
-
-            // 회원 모달 닫기 버튼 클릭 시 모달 닫기
-            const memberModalClose = document.getElementById('memberModalClose');
-            if (memberModalClose) {
-                console.log('회원 모달 닫기 버튼 찾음:', memberModalClose.id);
-                memberModalClose.addEventListener('click', function () {
-                    console.log('회원 모달 닫기 버튼 클릭됨');
-                    closeMemberSelectModal();
-                });
-            } else {
-                console.error('회원 모달 닫기 버튼(#memberModalClose)을 찾을 수 없습니다');
-            }
-
-            // 회원 모달 취소 버튼 클릭 시 모달 닫기
-            const cancelMemberSelectBtn = document.getElementById('cancelMemberSelectBtn');
-            if (cancelMemberSelectBtn) {
-                console.log('회원 모달 취소 버튼 찾음:', cancelMemberSelectBtn.id);
-                cancelMemberSelectBtn.addEventListener('click', function () {
-                    console.log('회원 모달 취소 버튼 클릭됨');
-                    closeMemberSelectModal();
-                });
-            } else {
-                console.error('회원 모달 취소 버튼(#cancelMemberSelectBtn)을 찾을 수 없습니다');
-            }
-
-            // 직원 모달 닫기 버튼 클릭 시 모달 닫기
-            const employeeModalClose = document.getElementById('employeeModalClose');
-            if (employeeModalClose) {
-                console.log('직원 모달 닫기 버튼 찾음:', employeeModalClose.id);
-                employeeModalClose.addEventListener('click', function () {
-                    console.log('직원 모달 닫기 버튼 클릭됨');
-                    closeEmployeeSelectModal();
-                });
-            } else {
-                console.error('직원 모달 닫기 버튼(#employeeModalClose)을 찾을 수 없습니다');
-            }
-
-            // 직원 모달 취소 버튼 클릭 시 모달 닫기
-            const cancelEmployeeSelectBtn = document.getElementById('cancelEmployeeSelectBtn');
-            if (cancelEmployeeSelectBtn) {
-                console.log('직원 모달 취소 버튼 찾음:', cancelEmployeeSelectBtn.id);
-                cancelEmployeeSelectBtn.addEventListener('click', function () {
-                    console.log('직원 모달 취소 버튼 클릭됨');
-                    closeEmployeeSelectModal();
-                });
-            } else {
-                console.error('직원 모달 취소 버튼(#cancelEmployeeSelectBtn)을 찾을 수 없습니다');
-            }
-
-            // 모달이 없으면 DOM에 있는 모든 모달 클래스 요소 검사
-            if (!document.getElementById('memberSelectModal') || !document.getElementById('employeeSelectModal')) {
-                const modalElements = document.querySelectorAll('.modal-overlay, .modal');
-                console.log('발견된 모달 요소 수:', modalElements.length);
-                modalElements.forEach((el, idx) => {
-                    console.log(`모달 #${idx + 1}:`, {
-                        id: el.id,
-                        class: el.className,
-                        display: el.style.display,
-                        children: el.children.length
-                    });
-                });
-            }
-
-            console.log('==== setupEventListeners 함수 종료 ====');
-        }
-
-        // 회원 검색 함수
         function searchMembers() {
             const searchInput = document.getElementById('memberSearchInput').value.toLowerCase();
             const memberItems = document.querySelectorAll('#memberList .modal-item');
@@ -2360,12 +1633,10 @@
             let hasVisible = false;
 
             memberItems.forEach(item => {
-                // 회원번호와 회원명 모두 검색 대상에 포함
                 const memberNo = item.getAttribute('data-member-number')?.toLowerCase() || '';
                 const memberName = item.getAttribute('data-member-name')?.toLowerCase() || '';
                 const text = item.textContent.toLowerCase();
                 
-                // 회원번호나 회원명에 검색어가 포함되어 있으면 표시
                 if (memberNo.includes(searchInput) || memberName.includes(searchInput) || text.includes(searchInput)) {
                     item.style.display = 'block';
                     hasVisible = true;
@@ -2374,11 +1645,9 @@
                 }
             });
 
-            // 검색 결과가 없는 경우
             if (!hasVisible && memberItems.length > 0) {
                 const memberList = document.getElementById('memberList');
 
-                // 이미 '검색 결과 없음' 메시지가 있는지 확인
                 if (!document.querySelector('#memberList .no-search-results')) {
                     const noResults = document.createElement('div');
                     noResults.className = 'no-items no-search-results';
@@ -2386,7 +1655,6 @@
                     memberList.appendChild(noResults);
                 }
             } else {
-                // 검색 결과가 있으면 '검색 결과 없음' 메시지 제거
                 const noResults = document.querySelector('#memberList .no-search-results');
                 if (noResults) {
                     noResults.remove();
